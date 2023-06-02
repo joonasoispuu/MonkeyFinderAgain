@@ -23,7 +23,7 @@
                     ItemsSource="{Binding Monkeys}"
                     SelectionMode="None"
                     EmptyView="Empty">
-                    
+                   
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="model:Monkey">
                             <Grid Padding="10">
