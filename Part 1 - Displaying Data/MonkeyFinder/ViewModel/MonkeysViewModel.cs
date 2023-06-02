@@ -17,6 +17,9 @@ public partial class MonkeysViewModel : BaseViewModel
         this.geolocation = geolocation;
     }
 
+    [ObservableProperty]
+    bool isRefreshing;
+
     [RelayCommand]
     async Task GoToDetails(Monkey monkey)
     {
@@ -95,6 +98,7 @@ public partial class MonkeysViewModel : BaseViewModel
         finally
         {
             IsBusy = false;
+            IsRefreshing = false;
         }
 
     }
