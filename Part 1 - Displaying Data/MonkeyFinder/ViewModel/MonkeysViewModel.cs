@@ -7,12 +7,14 @@ public partial class MonkeysViewModel : BaseViewModel
     public ObservableCollection<Monkey> Monkeys { get; } = new();
     MonkeyService monkeyService;
     IConnectivity connectivity;
+    IGeolocation geolocation;
 
-    public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity)
+    public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity, IGeolocation geolocation)
     {
         Title = "Monkey Finder";
         this.connectivity = connectivity;
         this.monkeyService = monkeyService;
+        this.geolocation = geolocation;
     }
 
     [RelayCommand]
@@ -25,6 +27,39 @@ public partial class MonkeysViewModel : BaseViewModel
         {
             {"Monkey", monkey }
         });
+    }
+
+    [RelayCommand]
+    async Task GetClosestMonkey()
+    {
+        if (IsBusy || Monkeys.Count == 0)
+            return;
+
+        try
+        {
+            var location = await geolocation.GetLastKnownLocationAsync();
+            if (location == null)
+            {
+                location = await geolocation.GetLocationAsync(new GeolocationRequest
+                {
+                    DesiredAccuracy = GeolocationAccuracy.Medium,
+                    Timeout = TimeSpan.FromSeconds(30)
+                });
+            }
+
+            var first = Monkeys.OrderBy(m => location.CalculateDistance(
+                new Location(m.Latitude, m.Longitude), DistanceUnits.Miles))
+                .FirstOrDefault();
+
+            await Shell.Current.DisplayAlert("", first.Name + " " +
+                first.Location, "OK");
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Unable to query location: {ex.Message}");
+            await Shell.Current.DisplayAlert("Error!", ex.Message, "OK");
+        }
     }
 
     [RelayCommand]
